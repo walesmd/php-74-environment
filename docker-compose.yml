@@ -1,0 +1,44 @@
+version: '3.1'
+
+services:
+    php:
+        container_name: playground
+        build: ./docker/local/php
+        volumes:
+            - ".:/var/www/html"
+            - "./docker/local/php/000-default.conf:/etc/apache2/sites-available/000-default.conf"
+            - "./docker/local/php/php.ini:/usr/local/etc/php/conf.d/php.ini"
+        networks:
+            static-network:
+                ipv4_address: 172.20.0.3
+        ports:
+            - '8910:80'
+
+    db:
+        image: mysql
+        command: --default-authentication-plugin=mysql_native_password
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+        networks:
+            static-network:
+                ipv4_address: 172.20.0.4
+
+    phpmyadmin:
+        container_name: playground-phpmyadmin
+        build: ./docker/local/phpmyadmin
+        depends_on:
+            - db
+        networks:
+            static-network:
+                ipv4_address: 172.20.0.5
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+        ports:
+            - '8911:80'
+
+networks:
+    static-network:
+        ipam:
+            config:
+                - subnet: 172.20.0.1/24
